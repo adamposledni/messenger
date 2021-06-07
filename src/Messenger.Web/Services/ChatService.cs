@@ -12,7 +12,7 @@ namespace Messenger.Web.Services
 {
     public interface IChatService
     {
-        Task<IEnumerable<ChatSimpleRes>> GetAllAsync(string userId);
+        Task<IEnumerable<ChatRes>> GetAllAsync(string userId);
         Task<bool> CreateAsync(ChatReq model, string userId);
         Task<IEnumerable<MessageRes>> GetMessagesAsync(string chatId, string userId);
         Task<MessageRes> CreateMessagesAsync(MessageReq model, string userId);
@@ -31,11 +31,15 @@ namespace Messenger.Web.Services
             _userService = userService;
         }
 
-        public async Task<IEnumerable<ChatSimpleRes>> GetAllAsync(string userId)
+        /// <summary>
+        /// Get all users chats
+        /// </summary>
+        public async Task<IEnumerable<ChatRes>> GetAllAsync(string userId)
         {
-            // all users chats
             var chats = await _chatCollection.Find(ch => ch.MemberIds.Any(mid => mid == userId)).ToListAsync();
-            List<ChatSimpleRes> formattedChats = new();
+            
+            // formatting response
+            List<ChatRes> formattedChats = new();
             foreach (var chat in chats)
             {
                 // chat without name
@@ -43,20 +47,24 @@ namespace Messenger.Web.Services
                 {
                     chat.Name = await GetChatNameAsync(chat, userId);
                 }
-                ChatSimpleRes formattedChat = _mapper.Map<ChatSimpleRes>(chat);
+                ChatRes formattedChat = _mapper.Map<ChatRes>(chat);
+                // determine whether chat is a group chat 
                 formattedChat.IsGroup = chat.MemberIds.Count() > 2;
                 formattedChats.Add(formattedChat);
             }
-
             return formattedChats;
         }
 
+        /// <summary>
+        /// Create a new chat
+        /// </summary>
         public async Task<bool> CreateAsync(ChatReq model, string userId)
         {
             List<string> modelMemberIds = model.MemberIds.ToList();
+            // add caller user ID to members
             modelMemberIds.Add(userId);
 
-            // remove duplicates
+            // remove duplicates user IDs
             modelMemberIds = modelMemberIds.Distinct().ToList();
 
             // check if enought members
@@ -65,7 +73,7 @@ namespace Messenger.Web.Services
                 throw new AppLogicException("Chat has less then 2 members");
             }
 
-            // check if already exists
+            // check if chat with these users already exists
             bool alreadyExists = false;
             var chats = await _chatCollection.Find(ch => true).ToListAsync();
             foreach (var chat in chats)
@@ -77,12 +85,12 @@ namespace Messenger.Web.Services
                     break;
                 }
             }
-
             if (alreadyExists)
             {
                 throw new AppLogicException("Chat with these members already exists");
             }
 
+            // save to DB
             Chat newChat = new()
             {
                 MemberIds = modelMemberIds,
@@ -90,9 +98,13 @@ namespace Messenger.Web.Services
                 Messages = new List<Message>()
             };
             await _chatCollection.InsertOneAsync(newChat);
+
             return true;
         }
 
+        /// <summary>
+        /// Get all messages of the given chat
+        /// </summary>
         public async Task<IEnumerable<MessageRes>> GetMessagesAsync(string chatId, string userId)
         {
             var chat = await _chatCollection.Find(ch => ch.Id == chatId).FirstOrDefaultAsync();
@@ -138,6 +150,9 @@ namespace Messenger.Web.Services
             return messages;
         }
 
+        /// <summary>
+        /// Create a new message in the chat
+        /// </summary>
         public async Task<MessageRes> CreateMessagesAsync(MessageReq model, string authorId)
         {
             var chat = await _chatCollection.Find(ch => ch.Id == model.ChatId).FirstOrDefaultAsync();
@@ -161,13 +176,13 @@ namespace Messenger.Web.Services
                 AuthorId = authorId,
                 TimeStamp = DateTime.UtcNow
             };
+            // pushing into the collection property
             var updateDefinition = Builders<Chat>.Update.Push(ch => ch.Messages, message);
             await _chatCollection.UpdateOneAsync(ch => ch.Id == model.ChatId, updateDefinition);
 
             // format response
             var author = _mapper.Map<UserNameRes>(
                 await _userService.GetUserByIdAsync(authorId));
-
             MessageRes response = new()
             {
                 Content = model.Content,
@@ -176,10 +191,12 @@ namespace Messenger.Web.Services
                 ChatId = model.ChatId,
                 IsOwn = false
             };
-
             return response;
         }
 
+        /// <summary>
+        /// Get user IDs of the other members in the chat
+        /// </summary>
         public async Task<IEnumerable<string>> GetOtherMembersIdsAsync(string chatId, string userId)
         {
             var chat = await _chatCollection.Find(ch => ch.Id == chatId).FirstOrDefaultAsync();
@@ -191,11 +208,15 @@ namespace Messenger.Web.Services
             }
 
             var otherMembersIds = chat.MemberIds.ToList();
+            // remove current user id from the collection
             otherMembersIds.Remove(userId);
 
             return otherMembersIds;
         }
 
+        /// <summary>
+        /// Get name of the chat
+        /// </summary>
         private async Task<string> GetChatNameAsync(Chat chat, string userId)
         {
             List<string> memberIds = chat.MemberIds.ToList();
@@ -203,7 +224,7 @@ namespace Messenger.Web.Services
 
             int memberIdsCount = memberIds.Count();
 
-            // only one member
+            // not group chat
             if (memberIdsCount == 1)
             {
                 string id = memberIds[0];
@@ -211,7 +232,7 @@ namespace Messenger.Web.Services
                 return $"{user.FirstName} {user.LastName}";
             }
 
-            // more members
+            // group chat
             string name = "";
             for (int i = 0; i < memberIdsCount; i++)
             {
@@ -225,7 +246,5 @@ namespace Messenger.Web.Services
             }
             return name;
         }
-
-
     }
 }

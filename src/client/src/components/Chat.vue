@@ -7,6 +7,7 @@
                 :message="message"
                 :showName="showMessageName(message, index)"
             ></Message>
+            <div ref="scrollAnchor" style="height: 10px"></div>
         </div>
 
         <b-input-group class="mt-auto rounded">
@@ -45,6 +46,14 @@ export default {
     computed: {
         ...mapState(["messages", "currentChat"]),
     },
+    watch: {
+        messages() {
+            this.scrollToElement();
+        }
+    },
+    mounted () {
+        this.scrollToElement();
+    },
     methods: {
         sendMessage() {
             if (
@@ -74,13 +83,21 @@ export default {
             }
 
             // check if previous message was from the same user
-            let prevMessage = this.messages[currentIndex-1];
+            let prevMessage = this.messages[currentIndex - 1];
             if (prevMessage.author.id === currMessage.author.id) {
                 return false;
             }
 
             return true;
-        }
+        },
+        scrollToElement() {
+            const el = this.$refs.scrollAnchor;
+            if (el) {
+                setTimeout(() => {
+                    el.scrollIntoView({ behavior: "smooth" });
+                }, 50);
+            }
+        },
     },
 };
 </script>

@@ -3,11 +3,11 @@
         <h1 class="text-center">Sign In</h1>
         <b-form @submit.prevent class="border login-form">
             <b-form-group
-                label="Email address:"
+                label="Username:"
             >
                 <b-form-input
-                    v-model="newUser.email"
-                    type="email"
+                    v-model="newUser.username"
+                    type="text"
                     required
                 ></b-form-input>
             </b-form-group>
@@ -37,7 +37,7 @@ export default {
     data() {
         return {
             newUser: {
-                email: null,
+                username: null,
                 password: null,
             },
         };
@@ -46,7 +46,7 @@ export default {
         ...mapActions(["loginStore"]),
         resetForm() {
             this.newUser = {
-                email: null,
+                username: null,
                 password: null,
             };
         },

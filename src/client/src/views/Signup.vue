@@ -1,13 +1,13 @@
 <template>
     <div>
         <h1 class="text-center">Sign Up</h1>
-        <b-form @submit="registerUser" @reset="resetForm" class="border register-form">
+        <b-form @submit.prevent @reset.prevent class="border register-form">
             <b-form-group
-                label="Email address:"
+                label="Username:"
             >
                 <b-form-input
-                    v-model="newUser.email"
-                    type="email"
+                    v-model="newUser.username"
+                    type="text"
                     required
                 ></b-form-input>
             </b-form-group>
@@ -36,8 +36,8 @@
                 ></b-form-input>
             </b-form-group>
 
-            <b-button type="submit" variant="primary" class="mr-3">Submit</b-button>
-            <b-button type="reset" variant="secondary" >Reset</b-button>
+            <b-button type="submit" variant="primary" class="mr-3" v-on:click="registerUser">Submit</b-button>
+            <b-button type="reset" variant="secondary" v-on:click="resetForm">Reset</b-button>
         </b-form>
     </div>
 </template>
@@ -52,7 +52,7 @@ export default {
             newUser: {
                 firstName: null,
                 lastName: null,
-                email: null,
+                username: null,
                 password: null,
             },
         };
@@ -62,7 +62,7 @@ export default {
             this.newUser = {
                 firstName: null,
                 lastName: null,
-                email: null,
+                username: null,
                 password: null,
             };
         },

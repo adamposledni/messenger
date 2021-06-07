@@ -28,7 +28,7 @@ namespace Messenger.Web.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<ChatSimpleRes>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ChatRes>>> GetAll()
         {
             string userId = HttpContext.User.Identity.Name;
             var response = await _chatService.GetAllAsync(userId);
@@ -50,6 +50,7 @@ namespace Messenger.Web.Controllers
         {
             string userId = HttpContext.User.Identity.Name;
             var response = await _chatService.GetMessagesAsync(chatId, userId);
+            // chat does not exist
             if (response == null)
             {
                 return StatusCode(404);

@@ -6,6 +6,12 @@ input:focus
     border: solid 1px #cccccc !important;
 }
 
+button:focus
+{
+    box-shadow: none !important;
+    border: solid 1px #cccccc !important;
+}
+
 .cursor-pointer {
     cursor: pointer;
 }

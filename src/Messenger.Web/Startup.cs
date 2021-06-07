@@ -76,7 +76,6 @@ namespace Messenger.Web
 
             // JWT
             var key = Encoding.ASCII.GetBytes(appSettings.Secret);
-
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -94,6 +93,7 @@ namespace Messenger.Web
                         ValidateAudience = false,
                         ClockSkew = TimeSpan.Zero
                     };
+                    // JWT for SignalR
                     x.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
@@ -113,7 +113,7 @@ namespace Messenger.Web
                     };
                 });
 
-            // custom user id provider
+            // custom user ID provider (to be able to access user ID in the ChatHub)
             // https://docs.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz?view=aspnetcore-5.0#use-claims-to-customize-identity-handling
             services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
 
@@ -134,14 +134,8 @@ namespace Messenger.Web
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/error");
-            }
+            // custom error handler
+            app.UseExceptionHandler("/error");
 
             app.UseHttpsRedirection();
             app.UseCors();

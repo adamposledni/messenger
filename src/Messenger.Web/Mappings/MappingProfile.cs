@@ -14,7 +14,7 @@ namespace Messenger.Web.Mappings
         {
             CreateMap<User, UserRes>();
             CreateMap<User, UserNameRes>();
-            CreateMap<Chat, ChatSimpleRes>();
+            CreateMap<Chat, ChatRes>();
             CreateMap<Message, MessageRes>();
         }
     }

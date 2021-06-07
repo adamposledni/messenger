@@ -20,8 +20,8 @@ namespace Messenger.Web.Services
     {
         Task<UserRes> CreateAsync(UserCreateReq model);
         Task<UserAuthRes> AuthenticateAsync(UserAuthReq model);
-        Task<UserRes> GetDetailAsync(string userId);
         Task<User> GetUserByIdAsync(string userId);
+        Task<IEnumerable<UserNameRes>> ListOthersAsync(string userId);
     }
 
     public class UserService : IUserService
@@ -37,60 +37,74 @@ namespace Messenger.Web.Services
             _appSettings = appSettings.Value;
         }
 
-        public async Task<UserRes> GetDetailAsync(string userId)
-        {
-            var user = await _userCollection.Find(us => us.Id == userId)
-                .FirstOrDefaultAsync();
-            return _mapper.Map<UserRes>(user);
-        }
-
+        /// <summary>
+        /// Create new user
+        /// </summary>
         public async Task<UserRes> CreateAsync(UserCreateReq model)
         {
             // check if already exists
-            bool userExists = await _userCollection.Find(us => us.Email == model.Email).AnyAsync();
+            bool userExists = await _userCollection.Find(us => us.Username == model.Username).AnyAsync();
             if (userExists)
             {
-                throw new AppLogicException("User with this email already exists");
+                throw new AppLogicException("User with this username already exists");
             }
 
+            // hashing and salting password
             byte[] hash, salt;
             HashPassword(model.Password, out hash, out salt);
 
             User newUser = new()
             {
-                Email = model.Email,
+                Username = model.Username,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 PasswordHash = hash,
                 PasswordSalt = salt
             };
 
+            // insert user into db
             await _userCollection.InsertOneAsync(newUser);            
 
             return _mapper.Map<UserRes>(newUser);
         }
 
+        /// <summary>
+        /// Authenticate user
+        /// </summary>
         public async Task<UserAuthRes> AuthenticateAsync(UserAuthReq model)
         {
             // check if user exists
             var user = await _userCollection
-                .Find(us => us.Email == model.Email).FirstOrDefaultAsync();
+                .Find(us => us.Username == model.Username).FirstOrDefaultAsync();
             if (user == null)
             {
-                throw new AppLogicException("Invalid email or password");
+                throw new AppLogicException("Invalid username or password");
             }
 
             // verify password
             if (!VerifyPassword(model.Password, user.PasswordHash, user.PasswordSalt))
             {
-                throw new AppLogicException("Invalid email or password");
+                throw new AppLogicException("Invalid username or password");
             }
 
             // generate token
             string token = GenerateJwt(user);
-            return new UserAuthRes(user.Email, token);
+
+            return new UserAuthRes(user.Username, token);
         }
 
+        /// <summary>
+        /// List all users (except the one who made the request)
+        /// </summary>
+        public async Task<IEnumerable<UserNameRes>> ListOthersAsync(string userId)
+        {
+            var users = await _userCollection.Find(us => us.Id != userId).ToListAsync();
+            return _mapper.Map<IEnumerable<UserNameRes>>(users);
+        }
+
+        /// <summary>
+        /// Get user by id
+        /// </summary>
         public async Task<User> GetUserByIdAsync(string userId)
         {
             var user = await _userCollection
@@ -100,6 +114,9 @@ namespace Messenger.Web.Services
             return user;
         }
 
+        /// <summary>
+        /// Verify password
+        /// </summary>
         private bool VerifyPassword(string password, byte[] dbHash, byte[] dbSalt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA256(dbSalt))
@@ -116,6 +133,9 @@ namespace Messenger.Web.Services
             return true;
         }
 
+        /// <summary>
+        /// Generate JWT
+        /// </summary>
         private string GenerateJwt(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -133,7 +153,9 @@ namespace Messenger.Web.Services
             return tokenHandler.WriteToken(token);
         }
 
-
+        /// <summary>
+        /// Hash password
+        /// </summary>
         private void HashPassword(string password, out byte[] hash, out byte[] salt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA256())
@@ -142,7 +164,5 @@ namespace Messenger.Web.Services
                 hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
             }
         }
-
-
     }
 }

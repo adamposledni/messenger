@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Messenger.Web.Models
 {
+    /// <summary>
+    /// Error response
+    /// </summary>
     public class ErrorRes
     {
         public string Error { get; set; }

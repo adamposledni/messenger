@@ -21,17 +21,13 @@ namespace Messenger.Web.Controllers
             _userService = userService;
         }
 
-        // GET: api/users/detail
+        // GET: api/users
         [Authorize]
-        [HttpGet("detail")]
-        public async Task<ActionResult<UserRes>> GetDetail()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserNameRes>>> ListOthers()
         {
             string userId = HttpContext.User.Identity.Name;
-            var response = await _userService.GetDetailAsync(userId);
-            if (response == null)
-            {
-                return StatusCode(404);
-            }
+            var response = await _userService.ListOthersAsync(userId);
             return StatusCode(200, response);
         }
 
@@ -52,5 +48,7 @@ namespace Messenger.Web.Controllers
             var response = await _userService.AuthenticateAsync(body);
             return StatusCode(200, response);
         }
+
+
     }
 }

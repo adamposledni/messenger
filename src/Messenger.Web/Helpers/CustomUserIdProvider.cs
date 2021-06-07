@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Messenger.Web.Helpers
 {
+    /// <summary>
+    /// Custom user ID provider (using Identity.Name as an ID)
+    /// </summary>
     public class CustomUserIdProvider : IUserIdProvider
     {
         public string GetUserId(HubConnectionContext connection)

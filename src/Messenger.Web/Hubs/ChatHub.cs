@@ -15,12 +15,17 @@ namespace Messenger.Web.Hubs
 {
     public interface IChatHub
     {
+        /// <summary>
+        /// Method name to receive message
+        /// </summary>
         Task ReceiveMessage(MessageRes message);
     }
 
+    /// <summary>
+    /// Hub for chatting
+    /// </summary>
     public class ChatHub : Hub<IChatHub>
     {
-        //private IMongoCollection<Chat> _chatCollection;
         private IChatService _chatService;
 
         public ChatHub(IChatService chatService)
@@ -28,15 +33,23 @@ namespace Messenger.Web.Hubs
             _chatService = chatService;
         }
 
+        /// <summary>
+        /// Sending message to corresponding users
+        /// </summary>
         [Authorize]
         public async Task SendMessage(MessageReq incoming)
         {
+            // caller user ID
             string userId = Context.User.Identity.Name;
+            // insert message into DB and get DTO
             var outcomming = await _chatService.CreateMessagesAsync(incoming, userId);
+            // get corresponsing chat members IDs
             var membersIds = await _chatService.GetOtherMembersIdsAsync(incoming.ChatId, userId);
 
+            // send message to chat members
             await Clients.Users(membersIds).ReceiveMessage(outcomming);
 
+            // send message to the caller
             outcomming.IsOwn = true;
             await Clients.Caller.ReceiveMessage(outcomming);
         }

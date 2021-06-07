@@ -8,12 +8,15 @@ using System.Threading.Tasks;
 
 namespace Messenger.Web.Entities
 {
+    /// <summary>
+    /// User model
+    /// </summary>
     public class User
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        public string Email { get; set; }
+        public string Username { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
         public string FirstName { get; set; }

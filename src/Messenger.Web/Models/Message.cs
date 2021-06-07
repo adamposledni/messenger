@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Messenger.Web.Models
 {
+    /// <summary>
+    /// Message response
+    /// </summary>
     public class MessageRes
     {
         public string ChatId { get; set; }
@@ -14,6 +17,9 @@ namespace Messenger.Web.Models
         public bool IsOwn { get; set; }
     }
 
+    /// <summary>
+    /// Message request
+    /// </summary>
     public class MessageReq
     {
         public string ChatId { get; set; }

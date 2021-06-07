@@ -3,6 +3,9 @@ using System;
 
 namespace Messenger.Web.Models
 {
+    /// <summary>
+    /// Message model
+    /// </summary>
     public class Message
     {
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]

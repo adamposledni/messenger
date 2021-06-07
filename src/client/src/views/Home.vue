@@ -4,7 +4,7 @@
             <b-col cols="3">
                 <ChatList :chats="chats"></ChatList>
             </b-col>
-            <b-col cols="9" v-if="currentChat">
+            <b-col cols="9" v-if="currentChat && currentChat.id">
                 <Chat :messages="messages"></Chat>
             </b-col>
         </b-row>
@@ -12,11 +12,10 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapState } from "vuex";
+import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
 
 import ChatList from "../components/ChatList";
 import Chat from "../components/Chat";
-import httpClient from "../helpers/http-client";
 
 export default {
     name: "Home",
@@ -36,17 +35,21 @@ export default {
     },
     methods: {
         ...mapMutations(["setChats", "addMessage"]),
-        loadChats() {
-            httpClient
-                .get("/chats")
-                .then((response) => {
-                    this.setChats(response);
-                })
-                .catch(() => {});
-        },
+        ...mapActions(["loadChats"]),
         receiveMessage(message) {
             if (message.chatId === this.currentChat.id) {
                 this.addMessage(message);
+            } 
+            else {
+                var audio = new Audio(require('@/assets/sounds/message.mp3'))
+                audio.play();       
+                this.$bvToast.toast(message.content, {
+                    title: message.author.firstName + " " + message.author.lastName,
+                    variant: "info",
+                    solid: true,
+                    toaster: "b-toaster-bottom-right",
+                    autoHideDelay: 500
+                });
             }
             // else - notification
         },

@@ -67,11 +67,24 @@ export default new Vuex.Store({
         },
         switchChat({ commit }, chat) {
             commit("setCurrentChat", chat);
+            commit("setMessages", []);
+
             let specUrl = "/chats/" + chat.id + "/messages";
             httpClient
                 .get(specUrl)
                 .then((response) => {
                     commit("setMessages", response);
+                })
+                .catch(() => { });
+        },
+        loadChats({ commit }) {
+            commit("setChats", []);
+
+            httpClient
+                .get("/chats")
+                .then((response) => {
+                    console.log(response);
+                    commit("setChats", response);
                 })
                 .catch(() => { });
         }

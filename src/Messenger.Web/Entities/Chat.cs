@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Messenger.Web.Entities
 {
+    /// <summary>
+    /// Chat model
+    /// </summary>
     public class Chat
     {
         [BsonId]
