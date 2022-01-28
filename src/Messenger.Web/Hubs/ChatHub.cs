@@ -42,7 +42,7 @@ namespace Messenger.Web.Hubs
             // caller user ID
             string userId = Context.User.Identity.Name;
             // insert message into DB and get DTO
-            var outcomming = await _chatService.CreateMessagesAsync(incoming, userId);
+            var outcomming = await _chatService.CreateMessageAsync(incoming, userId);
             // get corresponsing chat members IDs
             var membersIds = await _chatService.GetOtherMembersIdsAsync(incoming.ChatId, userId);
 

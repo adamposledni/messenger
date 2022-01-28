@@ -15,7 +15,7 @@ namespace Messenger.Web.Services
         Task<IEnumerable<ChatRes>> GetAllAsync(string userId);
         Task<bool> CreateAsync(ChatReq model, string userId);
         Task<IEnumerable<MessageRes>> GetMessagesAsync(string chatId, string userId);
-        Task<MessageRes> CreateMessagesAsync(MessageReq model, string userId);
+        Task<MessageRes> CreateMessageAsync(MessageReq model, string userId);
         Task<IEnumerable<string>> GetOtherMembersIdsAsync(string chatId, string userId);
     }
 
@@ -153,7 +153,7 @@ namespace Messenger.Web.Services
         /// <summary>
         /// Create a new message in the chat
         /// </summary>
-        public async Task<MessageRes> CreateMessagesAsync(MessageReq model, string authorId)
+        public async Task<MessageRes> CreateMessageAsync(MessageReq model, string authorId)
         {
             var chat = await _chatCollection.Find(ch => ch.Id == model.ChatId).FirstOrDefaultAsync();
 

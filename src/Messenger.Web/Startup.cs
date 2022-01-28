@@ -66,6 +66,7 @@ namespace Messenger.Web
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
+
                     });
             });
 
